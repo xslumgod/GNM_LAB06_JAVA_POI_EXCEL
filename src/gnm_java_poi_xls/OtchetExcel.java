@@ -6,11 +6,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.CellRange;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class OtchetExcel extends javax.swing.JFrame {
     private static final long serialVersionUID = 1L;
@@ -60,16 +68,23 @@ public class OtchetExcel extends javax.swing.JFrame {
             wb.write(fileOut);
         }
     }
-
+    
+     class TThread2 extends Thread {
+         
+     }
+    
     public OtchetExcel() {
         initComponents();
     }
+    
+    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jTextField_Name = new javax.swing.JTextField();
         jTextField_INN = new javax.swing.JTextField();
         jTextField_MinusV1 = new javax.swing.JTextField();
@@ -83,14 +98,23 @@ public class OtchetExcel extends javax.swing.JFrame {
         setResizable(false);
         getContentPane().setLayout(null);
 
-        jButton1.setText("в Excel");
+        jButton1.setText("XLS");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
         getContentPane().add(jButton1);
-        jButton1.setBounds(760, 10, 67, 23);
+        jButton1.setBounds(700, 10, 72, 22);
+
+        jButton2.setText("XLSX");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton2);
+        jButton2.setBounds(780, 10, 60, 22);
 
         jTextField_Name.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         getContentPane().add(jTextField_Name);
@@ -139,7 +163,77 @@ public class OtchetExcel extends javax.swing.JFrame {
         setSize(new java.awt.Dimension(877, 607));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+    
+    
+    public static void writeXLSXFile(String xlsxFileName) throws IOException {
+        XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(xlsxFileName));
+        XSSFSheet sheet = wb.getSheetAt(0);
+        for (int r = 0; r < 4; r++) {
+            XSSFRow row = sheet.createRow(r + 9);
+            for (int c = 0; c < 4; c++) {
+                row.createCell(c);
+            }
+        }
 
+        FileOutputStream fos = new FileOutputStream(xlsxFileName);
+        wb.write(fos);
+        fos.flush();
+        fos.close();
+    }
+
+    // Модификация данных в XLSX-файле
+    public static void modifyXLSXFile(String xlsxFileName, String Name, String INN,
+        String MinusV1, String MinusV2, String MinusS1,String MinusS2) throws IOException {
+        XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(xlsxFileName));
+        XSSFSheet sheet = wb.getSheetAt(0);
+
+        FormulaEvaluator evaluator = wb.getCreationHelper().createFormulaEvaluator();
+        
+        
+        sheet.getRow(5).getCell(1).setCellValue(Name);
+        sheet.getRow(6).getCell(5).setCellValue(INN);
+        
+       
+        sheet.getRow(14).getCell(4).setCellValue(MinusV1);
+        sheet.getRow(15).getCell(4).setCellValue(MinusS1);
+        evaluator.evaluateFormulaCell(sheet.getRow(16).getCell(4));
+        
+        sheet.getRow(14).getCell(6).setCellValue(MinusV2);
+        sheet.getRow(15).getCell(6).setCellValue(MinusS2);
+        evaluator.evaluateFormulaCell(sheet.getRow(16).getCell(6));
+
+
+        FileOutputStream fos = new FileOutputStream(xlsxFileName);
+        wb.write(fos);
+        fos.flush();
+        fos.close();
+    }
+
+    // Чтение данных из XLSX-файла
+    public static void readXLSXFile(String xlsxFileName) throws IOException {
+        InputStream ExcelFileToRead = new FileInputStream(xlsxFileName);
+        XSSFSheet sheet = new XSSFWorkbook(ExcelFileToRead).getSheetAt(0);
+        XSSFRow row;
+        XSSFCell cell;
+        // Считывание текстовых и цифровых данных из файла
+        Iterator rows = sheet.rowIterator();
+        while (rows.hasNext()) {
+            row = (XSSFRow) rows.next();
+            Iterator cells = row.cellIterator();
+            while (cells.hasNext()) {
+                cell = (XSSFCell) cells.next();
+                if (cell.getCellType() == CellType.STRING) {
+                    System.out.print(cell.getStringCellValue() + " ");
+                } else if (cell.getCellType() == CellType.NUMERIC) {
+                    System.out.print(cell.getNumericCellValue() + " ");
+                } else {
+                }
+            }
+            System.out.println();
+        }
+    }
+    
+    
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         new TThread1().start();
@@ -152,6 +246,22 @@ public class OtchetExcel extends javax.swing.JFrame {
     private void jTextField_MinusS1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField_MinusS1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField_MinusS1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+
+        try {
+            String xlsxFileName = new File(".").getAbsoluteFile().getParentFile().getAbsolutePath()
+                    + System.getProperty("file.separator") + "otchet_template.xlsx";
+//            writeXLSXFile(xlsxFileName);
+            modifyXLSXFile(xlsxFileName, jTextField_Name.getText(), jTextField_INN.getText(), jTextField_MinusV1.getText(),jTextField_MinusV2.getText(),jTextField_MinusS1.getText(),jTextField_MinusS2.getText());
+            readXLSXFile(xlsxFileName);
+            Desktop.getDesktop().open(new File("otchet_template.xlsx"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+            
+
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -203,6 +313,7 @@ public class OtchetExcel extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField jTextField_INN;
     private javax.swing.JTextField jTextField_MinusS1;
